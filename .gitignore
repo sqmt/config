@@ -1,0 +1,6 @@
+.idea/
+default.etcd/
+
+go.sum
+*.zip
+*.tar.gz

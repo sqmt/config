@@ -1,0 +1,36 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ETCD_VER: "v2.3.8"
+      DOWNLOAD_URL: "https://github.com/coreos/etcd/releases/download"
+      MY_TEST_ETCD: "/tmp/test-etcd/etcd"
+      MY_TEST_ETCDCTL: "/tmp/test-etcd/etcdctl"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: download etcd
+      run: wget -O /tmp/etcd-${{ env.ETCD_VER }}-linux-amd64.tar.gz --limit-rate=100M --tries=6 -c --no-check-certificate "${{ env.DOWNLOAD_URL }}/${{ env.ETCD_VER }}/etcd-${{ env.ETCD_VER }}-linux-amd64.tar.gz"
+
+    - name: install etcd
+      run: mkdir -p /tmp/test-etcd && tar xzvf /tmp/etcd-${{ env.ETCD_VER }}-linux-amd64.tar.gz -C /tmp/test-etcd --strip-components=1
+
+    - name: Build
+      run: go mod tidy && go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
